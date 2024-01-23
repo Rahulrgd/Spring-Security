@@ -1,4 +1,4 @@
-package com.in28minutes.learningspringsecurity.basic;
+package com.in28minutes.learningspringsecurity.jwt;
 
 import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -8,18 +8,17 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-// @Configuration
-public class BasicAuthSecurityConfiguration {
+@Configuration
+public class JwtSecurityConfiguration {
 
   @Bean
   @Order(SecurityProperties.BASIC_AUTH_ORDER)
@@ -30,28 +29,12 @@ public class BasicAuthSecurityConfiguration {
     http.sessionManagement(session ->
       session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
     );
-    // http.formLogin();
     http.httpBasic();
     http.csrf().disable();
     http.headers().frameOptions().sameOrigin();
+    http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
     return http.build();
   }
-
-  //   Creating new user in inmemory
-  //   @Bean
-  //   public UserDetailsService userDetailsService() {
-  //     var user = User
-  //       .withUsername("in28minutes")
-  //       .password("{noop}dummy")
-  //       .roles("USER")
-  //       .build();
-  //     var admin = User
-  //       .withUsername("admin")
-  //       .password("{noop}dummy")
-  //       .roles("ADMIN")
-  //       .build();
-  //     return new InMemoryUserDetailsManager(user, admin);
-  //   }
 
   //   Executing Default User Schema DDL to create User table in H2 database during thing startup of the application
   @Bean
@@ -66,14 +49,12 @@ public class BasicAuthSecurityConfiguration {
   public UserDetailsService userDetailsService(DataSource dataSource) {
     var user = User
       .withUsername("in28minutes")
-      //   .password("{noop}dummy")
       .password("dummy")
       .passwordEncoder(str -> passwordEncoder().encode(str))
       .roles("USER", "ADMIN")
       .build();
     var admin = User
       .withUsername("admin")
-      //   .password("{noop}dummy")
       .password("dummy")
       .passwordEncoder(str -> passwordEncoder().encode(str))
       .roles("ADMIN")
