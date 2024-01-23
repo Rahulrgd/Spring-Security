@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
@@ -37,20 +38,20 @@ public class BasicAuthSecurityConfiguration {
   }
 
   //   Creating new user in inmemory
-//   @Bean
-//   public UserDetailsService userDetailsService() {
-//     var user = User
-//       .withUsername("in28minutes")
-//       .password("{noop}dummy")
-//       .roles("USER")
-//       .build();
-//     var admin = User
-//       .withUsername("admin")
-//       .password("{noop}dummy")
-//       .roles("ADMIN")
-//       .build();
-//     return new InMemoryUserDetailsManager(user, admin);
-//   }
+  //   @Bean
+  //   public UserDetailsService userDetailsService() {
+  //     var user = User
+  //       .withUsername("in28minutes")
+  //       .password("{noop}dummy")
+  //       .roles("USER")
+  //       .build();
+  //     var admin = User
+  //       .withUsername("admin")
+  //       .password("{noop}dummy")
+  //       .roles("ADMIN")
+  //       .build();
+  //     return new InMemoryUserDetailsManager(user, admin);
+  //   }
 
   //   Executing Default User Schema DDL to create User table in H2 database during thing startup of the application
   @Bean
@@ -65,18 +66,27 @@ public class BasicAuthSecurityConfiguration {
   public UserDetailsService userDetailsService(DataSource dataSource) {
     var user = User
       .withUsername("in28minutes")
-      .password("{noop}dummy")
-      .roles("USER","ADMIN")
+      //   .password("{noop}dummy")
+      .password("dummy")
+      .passwordEncoder(str -> passwordEncoder().encode(str))
+      .roles("USER", "ADMIN")
       .build();
     var admin = User
       .withUsername("admin")
-      .password("{noop}dummy")
+      //   .password("{noop}dummy")
+      .password("dummy")
+      .passwordEncoder(str -> passwordEncoder().encode(str))
       .roles("ADMIN")
       .build();
 
-      var jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
-      jdbcUserDetailsManager.createUser(user);
-      jdbcUserDetailsManager.createUser(admin);
+    var jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+    jdbcUserDetailsManager.createUser(user);
+    jdbcUserDetailsManager.createUser(admin);
     return jdbcUserDetailsManager;
+  }
+
+  @Bean
+  public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 }
